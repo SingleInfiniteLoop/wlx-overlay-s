@@ -128,6 +128,25 @@ pub fn openxr_run(running: Arc<AtomicBool>) -> Result<(), BackendError> {
 
     let mut due_tasks = VecDeque::with_capacity(4);
 
+    let has_alpha_blend = xr_state
+        .instance
+        .exts()
+        .fb_composition_layer_alpha_blend
+        .is_some();
+    log::info!("Using alpha blend: {}", has_alpha_blend);
+
+    let mut alpha_blend_fb: xr::sys::CompositionLayerAlphaBlendFB =
+        xr::sys::CompositionLayerAlphaBlendFB {
+            ty: xr::sys::StructureType::COMPOSITION_LAYER_ALPHA_BLEND_FB,
+            next: std::ptr::null_mut() as _,
+            src_factor_color: xr::sys::BlendFactorFB::SRC_ALPHA,
+            dst_factor_color: xr::sys::BlendFactorFB::ONE_MINUS_SRC_ALPHA,
+            src_factor_alpha: xr::sys::BlendFactorFB::SRC_ALPHA,
+            dst_factor_alpha: xr::sys::BlendFactorFB::ONE_MINUS_SRC_ALPHA,
+        };
+
+    let ptr_alpha_blend_fb = &mut alpha_blend_fb as *mut xr::sys::CompositionLayerAlphaBlendFB;
+
     'main_loop: loop {
         let cur_frame = FRAME_COUNTER.fetch_add(1, Ordering::Relaxed);
 
@@ -314,6 +333,20 @@ pub fn openxr_run(running: Arc<AtomicBool>) -> Result<(), BackendError> {
 
         layers.sort_by(|a, b| b.0.total_cmp(&a.0));
 
+        if has_alpha_blend {
+            for (_, l) in layers.iter() {
+                match l {
+                    CompositionLayer::Quad(l) => unsafe {
+                        append_to_chain(l.as_raw() as *const _ as _, ptr_alpha_blend_fb as _);
+                    },
+                    CompositionLayer::Cylinder(l) => unsafe {
+                        append_to_chain(l.as_raw() as *const _ as _, ptr_alpha_blend_fb as _);
+                    },
+                    CompositionLayer::None => {}
+                }
+            }
+        }
+
         let frame_ref = layers
             .iter()
             .map(|f| match f.1 {
@@ -402,4 +435,15 @@ pub(super) enum CompositionLayer<'a> {
     None,
     Quad(xr::CompositionLayerQuad<'a, xr::Vulkan>),
     Cylinder(xr::CompositionLayerCylinderKHR<'a, xr::Vulkan>),
+}
+
+unsafe fn append_to_chain(
+    chain: *mut xr::sys::BaseOutStructure,
+    new: *mut xr::sys::BaseOutStructure,
+) {
+    let mut current = chain;
+    while !(*current).next.is_null() {
+        current = (*current).next;
+    }
+    (*current).next = new;
 }

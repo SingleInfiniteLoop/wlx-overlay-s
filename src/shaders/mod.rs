@@ -130,7 +130,7 @@ pub mod frag_srgb {
                 vec4 lower = out_color/vec4(12.92);
 
                 out_color = mix(higher, lower, cutoff);
-                out_color.a = alpha;
+                out_color.a = alpha * out_color.a;
             }
         ",
     }

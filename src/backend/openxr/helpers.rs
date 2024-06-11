@@ -35,6 +35,11 @@ pub(super) fn init_xr() -> Result<(xr::Instance, xr::SystemId), anyhow::Error> {
     } else {
         log::warn!("Missing EXT_hp_mixed_reality_controller extension.");
     }
+    if available_extensions.fb_composition_layer_alpha_blend {
+        enabled_extensions.fb_composition_layer_alpha_blend = true;
+    } else {
+        log::warn!("Missing FB_composition_layer_alpha_blend extension.");
+    }
 
     //#[cfg(not(debug_assertions))]
     let layers = [];
