@@ -343,8 +343,15 @@ where
                 }
             }
             // toggle watch back on if it was hidden
-            if !any_shown && *o.state.name == *WATCH_NAME {
-                o.state.reset(app, true);
+            if *o.state.name == *WATCH_NAME {
+                if any_shown {
+                    if o.state.want_visible || o.state.saved_transform.is_none() {
+                        o.state.want_visible = false;
+                        o.state.saved_transform = Some(o.state.transform);
+                    }
+                } else {
+                    o.state.reset(app, true);
+                }
             }
         });
     }
