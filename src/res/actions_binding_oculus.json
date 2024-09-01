@@ -3,16 +3,6 @@
    "app_key" : "galister.wlxoverlay-s",
    "bindings" : {
       "/actions/default" : {
-         "haptics" : [
-            {
-               "output" : "/actions/default/out/hapticsleft",
-               "path" : "/user/hand/left/output/haptic"
-            },
-            {
-               "output" : "/actions/default/out/hapticsright",
-               "path" : "/user/hand/right/output/haptic"
-            }
-         ],
          "poses" : [
             {
                "output" : "/actions/default/in/lefthand",
@@ -26,9 +16,6 @@
          "sources" : [
             {
                "inputs" : {
-                  "double" : {
-                     "output" : "/actions/default/in/showhide"
-                  },
                   "touch" : {
                      "output": "/actions/default/in/clickmodifierright"
                   }
@@ -49,6 +36,9 @@
                "path": "/user/hand/right/input/b",
                "mode": "button",
                "inputs": {
+                  "double" : {
+                     "output" : "/actions/default/in/showhide"
+                  },
                   "touch": {
                      "output": "/actions/default/in/clickmodifierright"
                   }
