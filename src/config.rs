@@ -142,10 +142,12 @@ fn def_timezones() -> Vec<String> {
     const EMEA: i32 = -60 * 60; // UTC-1
     const APAC: i32 = 5 * 60 * 60; // UTC+5
 
-    match offset.local_minus_utc() {
-        i32::MIN..EMEA => vec!["Europe/Paris".into(), "Asia/Tokyo".into()],
-        EMEA..APAC => vec!["America/New_York".into(), "Asia/Tokyo".into()],
-        APAC..=i32::MAX => vec!["Europe/Paris".into(), "America/New_York".into()],
+    if offset.local_minus_utc() < EMEA {
+        return vec!["Europe/Paris".into(), "Asia/Tokyo".into()]
+    } else if offset.local_minus_utc() < APAC {
+        return vec!["America/New_York".into(), "Asia/Tokyo".into()]
+    } else {
+        return vec!["Europe/Paris".into(), "America/New_York".into()]
     }
 }
 
